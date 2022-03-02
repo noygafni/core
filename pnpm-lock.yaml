@@ -240,6 +240,7 @@ importers:
   packages/sfc-playground:
     specifiers:
       '@vitejs/plugin-vue': ^1.10.2
+      '@vue/compiler-sfc': ^3.2.31
       '@vue/repl': ^0.4.8
       file-saver: ^2.0.5
       jszip: ^3.6.0
@@ -252,6 +253,7 @@ importers:
       vue: link:../vue
     devDependencies:
       '@vitejs/plugin-vue': 1.10.2_vite@2.7.1
+      '@vue/compiler-sfc': link:../compiler-sfc
       vite: 2.7.1
 
   packages/shared:

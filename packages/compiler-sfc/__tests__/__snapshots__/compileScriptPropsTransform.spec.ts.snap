@@ -142,10 +142,58 @@ return () => {}
 })"
 `;
 
+exports[`sfc props transform default values w/ type declaration using props interface imported from another file using named import, prod mode 1`] = `
+"import { defineComponent as _defineComponent } from 'vue'
+import { ExternalProps } from './types.ts'
+      
+export default /*#__PURE__*/_defineComponent({
+  props: {
+    foo: { default: 1 },
+    bar: { default: () => {} },
+    baz: null,
+    boola: { type: Boolean },
+    boolb: { type: [Boolean, Number] },
+    func: { type: Function, default: () => () => {} }
+  },
+  setup(__props: any) {
+
+      
+      
+return () => {}
+}
+
+})"
+`;
+
 exports[`sfc props transform default values w/ type declaration using props interface that extends another interface, prod mode 1`] = `
 "import { defineComponent as _defineComponent } from 'vue'
 interface PropsOne { foo?: number, bar?: object, baz?: any, boola?: boolean, boolb?: boolean | number, func?: Function }
       interface Props extends PropsOne {}
+      
+export default /*#__PURE__*/_defineComponent({
+  props: {
+    foo: { default: 1 },
+    bar: { default: () => {} },
+    baz: null,
+    boola: { type: Boolean },
+    boolb: { type: [Boolean, Number] },
+    func: { type: Function, default: () => () => {} }
+  },
+  setup(__props: any) {
+
+      
+      
+return () => {}
+}
+
+})"
+`;
+
+exports[`sfc props transform default values w/ type declaration using props interface that extends more than one interface, prod mode 1`] = `
+"import { defineComponent as _defineComponent } from 'vue'
+interface PropsOne { foo?: number, bar?: object, baz?: any }
+      interface PropsTwo { boola?: boolean, boolb?: boolean | number, func?: Function }
+      interface Props extends PropsOne, PropsTwo {}
       
 export default /*#__PURE__*/_defineComponent({
   props: {

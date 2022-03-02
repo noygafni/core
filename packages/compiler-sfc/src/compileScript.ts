@@ -14,6 +14,8 @@ import {
 import { SFCDescriptor, SFCScriptBlock } from './parse'
 import { parse as _parse, ParserOptions, ParserPlugin } from '@babel/parser'
 import { camelize, capitalize, generateCodeFrame, makeMap } from '@vue/shared'
+import fs from 'fs'
+import path from 'path'
 import {
   Node,
   Declaration,
@@ -36,7 +38,8 @@ import {
   ObjectMethod,
   LVal,
   Expression,
-  TSInterfaceDeclaration
+  TSInterfaceDeclaration,
+  ImportSpecifier,
 } from '@babel/types'
 import { walk } from 'estree-walker'
 import { RawSourceMap } from 'source-map'
@@ -558,6 +561,24 @@ export function compileScript(
             }
           }
           return interfaceBody
+        } else if (node.type === 'ImportDeclaration') {
+          const specifierNode = node.specifiers.find((currNode: Node) => ((currNode as ImportSpecifier).local as Identifier).name === refName)
+          if (specifierNode) {
+            const importFileName = node.source.value
+            const importPath = path.isAbsolute(importFileName) ? importFileName
+                : path.resolve(path.parse(sfc.filename).dir, importFileName)
+            const importedFileContent = fs.readFileSync(importPath, { encoding: 'utf-8' })
+            const importedContentAst = _parse(importedFileContent, {
+                  plugins,
+                  sourceType: 'module'
+              }).program
+              for (const node of importedContentAst.body) {
+                  const qualified = isQualifiedType(node)
+                  if (qualified) {
+                      return qualified
+                  }
+              }
+          }
         } else if (
           node.type === 'TSTypeAliasDeclaration' &&
           node.id.name === refName &&

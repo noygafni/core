@@ -5,9 +5,10 @@ export const mockId = 'xxxxxxxx'
 
 export function compileSFCScript(
   src: string,
+  filename?: string,
   options?: Partial<SFCScriptCompileOptions>
 ) {
-  const { descriptor } = parse(src)
+  const { descriptor } = parse(src, { filename })
   return compileScript(descriptor, {
     ...options,
     id: mockId

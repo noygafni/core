@@ -3,8 +3,8 @@ import { SFCScriptCompileOptions } from '../src'
 import { compileSFCScript, assertCode } from './utils'
 
 describe('sfc props transform', () => {
-  function compile(src: string, options?: Partial<SFCScriptCompileOptions>) {
-    return compileSFCScript(src, {
+  function compile(src: string,  options?: Partial<SFCScriptCompileOptions>) {
+    return compileSFCScript(src, 'packages\\compiler-sfc\\__tests__\\anonymous.vue', {
       inlineTemplate: true,
       reactivityTransform: true,
       ...options
@@ -133,6 +133,52 @@ describe('sfc props transform', () => {
       interface PropsTwo { boola?: boolean, boolb?: boolean | number, func?: Function }
       interface Props extends PropsOne, PropsTwo {}
       const { foo = 1, bar = {}, func = () => {} } = defineProps<Props>()
+      </script>
+    `,
+        { isProd: true }
+    )
+    // literals can be used as-is, non-literals are always returned from a
+    // function
+    expect(content).toMatch(`props: {
+    foo: { default: 1 },
+    bar: { default: () => {} },
+    baz: null,
+    boola: { type: Boolean },
+    boolb: { type: [Boolean, Number] },
+    func: { type: Function, default: () => () => {} }
+  }`)
+    assertCode(content)
+  })
+
+  test('default values w/ type declaration using props interface imported from another file using import *, prod mode', () => {
+    const { content } = compile(
+        `
+      <script setup lang="ts">
+      import * as PropsTypes from './types.ts'
+      const { foo = 1, bar = {}, func = () => {} } = defineProps<PropsTypes.ExternalProps>()
+      </script>
+    `,
+        { isProd: true }
+    )
+    // literals can be used as-is, non-literals are always returned from a
+    // function
+    expect(content).toMatch(`props: {
+    foo: { default: 1 },
+    bar: { default: () => {} },
+    baz: null,
+    boola: { type: Boolean },
+    boolb: { type: [Boolean, Number] },
+    func: { type: Function, default: () => () => {} }
+  }`)
+    assertCode(content)
+  })
+
+  test('default values w/ type declaration using props interface imported from another file using named import, prod mode', () => {
+    const { content } = compile(
+        `
+      <script setup lang="ts">
+      import { ExternalProps } from './types.ts'
+      const { foo = 1, bar = {}, func = () => {} } = defineProps<ExternalProps>()
       </script>
     `,
         { isProd: true }
