@@ -101,6 +101,55 @@ describe('sfc props transform', () => {
     assertCode(content)
   })
 
+  test('default values w/ type declaration using props interface that extends another interface, prod mode', () => {
+    const { content } = compile(
+        `
+      <script setup lang="ts">
+      interface PropsOne { foo?: number, bar?: object, baz?: any, boola?: boolean, boolb?: boolean | number, func?: Function }
+      interface Props extends PropsOne {}
+      const { foo = 1, bar = {}, func = () => {} } = defineProps<Props>()
+      </script>
+    `,
+        { isProd: true }
+    )
+    // literals can be used as-is, non-literals are always returned from a
+    // function
+    expect(content).toMatch(`props: {
+    foo: { default: 1 },
+    bar: { default: () => {} },
+    baz: null,
+    boola: { type: Boolean },
+    boolb: { type: [Boolean, Number] },
+    func: { type: Function, default: () => () => {} }
+  }`)
+    assertCode(content)
+  })
+
+  test('default values w/ type declaration using props interface that extends more than one interface, prod mode', () => {
+    const { content } = compile(
+        `
+      <script setup lang="ts">
+      interface PropsOne { foo?: number, bar?: object, baz?: any }
+      interface PropsTwo { boola?: boolean, boolb?: boolean | number, func?: Function }
+      interface Props extends PropsOne, PropsTwo {}
+      const { foo = 1, bar = {}, func = () => {} } = defineProps<Props>()
+      </script>
+    `,
+        { isProd: true }
+    )
+    // literals can be used as-is, non-literals are always returned from a
+    // function
+    expect(content).toMatch(`props: {
+    foo: { default: 1 },
+    bar: { default: () => {} },
+    baz: null,
+    boola: { type: Boolean },
+    boolb: { type: [Boolean, Number] },
+    func: { type: Function, default: () => () => {} }
+  }`)
+    assertCode(content)
+  })
+
   test('aliasing', () => {
     const { content, bindings } = compile(`
       <script setup>

@@ -35,7 +35,8 @@ import {
   Program,
   ObjectMethod,
   LVal,
-  Expression
+  Expression,
+  TSInterfaceDeclaration
 } from '@babel/types'
 import { walk } from 'estree-walker'
 import { RawSourceMap } from 'source-map'
@@ -538,12 +539,25 @@ export function compileScript(
       node.typeName.type === 'Identifier'
     ) {
       const refName = node.typeName.name
+      const body = scriptAst
+          ? [...scriptSetupAst.body, ...scriptAst.body]
+          : scriptSetupAst.body
       const isQualifiedType = (node: Node): Node | undefined => {
         if (
           node.type === 'TSInterfaceDeclaration' &&
           node.id.name === refName
         ) {
-          return node.body
+          const interfaceBody = node.body
+          if (node.extends) {
+            for (const extendsObj of node.extends) {
+              const extendsNode = (body.find((currNode: Node) => currNode.type === 'TSInterfaceDeclaration'
+                  && currNode.id.name === (extendsObj.expression as Identifier).name)) as TSInterfaceDeclaration | undefined
+              if (extendsNode) {
+                interfaceBody.body = [ ...interfaceBody.body, ...extendsNode.body.body ]
+              }
+            }
+          }
+          return interfaceBody
         } else if (
           node.type === 'TSTypeAliasDeclaration' &&
           node.id.name === refName &&
@@ -554,9 +568,6 @@ export function compileScript(
           return isQualifiedType(node.declaration)
         }
       }
-      const body = scriptAst
-        ? [...scriptSetupAst.body, ...scriptAst.body]
-        : scriptSetupAst.body
       for (const node of body) {
         const qualified = isQualifiedType(node)
         if (qualified) {
@@ -1130,7 +1141,7 @@ export function compileScript(
 
   // 4. extract runtime props/emits code from setup context type
   if (propsTypeDecl) {
-    extractRuntimeProps(propsTypeDecl, typeDeclaredProps, declaredTypes, isProd)
+    extractRuntimeProps(propsTypeDecl, typeDeclaredProps, declaredTypes)
   }
   if (emitsTypeDecl) {
     extractRuntimeEmits(emitsTypeDecl, typeDeclaredEmits)
@@ -1627,7 +1638,6 @@ function extractRuntimeProps(
   node: TSTypeLiteral | TSInterfaceBody,
   props: Record<string, PropTypeData>,
   declaredTypes: Record<string, string[]>,
-  isProd: boolean
 ) {
   const members = node.type === 'TSTypeLiteral' ? node.members : node.body
   for (const m of members) {

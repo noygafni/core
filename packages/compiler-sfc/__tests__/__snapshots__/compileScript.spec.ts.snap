@@ -404,6 +404,25 @@ return {  }
 }"
 `;
 
+exports[`SFC compile <script setup> defineProps ts w/ external definition 1`] = `
+"import { defineComponent as _defineComponent } from 'vue'
+import { propsModel } from './props'
+    
+export default /*#__PURE__*/_defineComponent({
+  props: propsModel,
+  setup(__props, { expose }) {
+  expose();
+
+const props = __props
+
+    
+    
+return { props, propsModel }
+}
+
+})"
+`;
+
 exports[`SFC compile <script setup> defineProps w/ external definition 1`] = `
 "import { propsModel } from './props'
     
